@@ -172,6 +172,60 @@
   btn.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 })();
 
+/* [JS-04b] 导出 PDF（打印模式） */
+(function initExportPDF() {
+  var exportBtn = document.getElementById('exportBtn');
+  if (!exportBtn) return;
+
+  /* 创建提示弹窗 DOM */
+  var overlay = document.createElement('div');
+  overlay.className = 'print-toast';
+  overlay.innerHTML =
+    '<div class="toast-icon">📄</div>' +
+    '<div class="toast-title">导出为 PDF</div>' +
+    '<div class="toast-desc">即将打开浏览器打印对话框。<br>请在"目标"中选择<strong>另存为 PDF</strong>，<br>然后点击保存即可下载笔记。</div>' +
+    '<button class="toast-btn" id="printConfirm">开始打印</button>' +
+    '<button class="toast-cancel" id="printCancel">取消</button>';
+  document.body.appendChild(overlay);
+
+  var toastOverlay = document.createElement('div');
+  toastOverlay.className = 'toast-overlay';
+  document.body.appendChild(toastOverlay);
+
+  /* 点击导出按钮 → 显示提示弹窗 */
+  exportBtn.addEventListener('click', function() {
+    overlay.classList.add('visible');
+    toastOverlay.classList.add('visible');
+  });
+
+  /* 确认打印 */
+  document.getElementById('printConfirm').addEventListener('click', function() {
+    overlay.classList.remove('visible');
+    toastOverlay.classList.remove('visible');
+    setTimeout(function() { window.print(); }, 300);
+  });
+
+  /* 取消 */
+  document.getElementById('printCancel').addEventListener('click', function() {
+    overlay.classList.remove('visible');
+    toastOverlay.classList.remove('visible');
+  });
+
+  /* 点击遮罩关闭 */
+  toastOverlay.addEventListener('click', function() {
+    overlay.classList.remove('visible');
+    toastOverlay.classList.remove('visible');
+  });
+
+  /* Escape 键关闭 */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('visible')) {
+      overlay.classList.remove('visible');
+      toastOverlay.classList.remove('visible');
+    }
+  });
+})();
+
 /* [JS-05] 移动端汉堡菜单 */
 (function initMobileMenu() {
   var menuToggle = document.getElementById('menuToggle');
