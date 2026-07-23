@@ -91,6 +91,44 @@ body {
 .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
 .theme-btn .icon { font-size: 1rem; }
 
+/* 导出 PDF 按钮 */
+.export-btn {
+  background: none; border: 1px solid var(--rule); border-radius: 20px;
+  padding: 6px 14px; color: var(--ink); font-size: 0.85rem; cursor: pointer;
+  transition: all 0.3s ease; display: flex; align-items: center; gap: 4px; white-space: nowrap;
+}
+.export-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+.export-btn .icon { font-size: 1rem; }
+
+/* 打印提示弹窗 */
+.print-toast {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 12px;
+  padding: 1.5rem 2rem; box-shadow: var(--shadow-md); z-index: 2000;
+  text-align: center; max-width: 380px; opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.print-toast.visible { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+.print-toast .toast-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+.print-toast .toast-title { font-size: 1.05rem; font-weight: 700; color: var(--ink); margin-bottom: 0.5rem; }
+.print-toast .toast-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; margin-bottom: 1rem; }
+.print-toast .toast-btn {
+  background: var(--accent); color: #fff; border: none; border-radius: 20px;
+  padding: 8px 24px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease;
+}
+.print-toast .toast-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.print-toast .toast-cancel {
+  background: none; color: var(--muted); border: 1px solid var(--rule);
+  border-radius: 20px; padding: 8px 18px; font-size: 0.9rem; cursor: pointer;
+  margin-left: 0.5rem; transition: all 0.2s ease;
+}
+.print-toast .toast-cancel:hover { color: var(--ink); border-color: var(--ink); }
+.print-toast .toast-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 1999;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+}
+.print-toast .toast-overlay.visible { opacity: 1; pointer-events: auto; }
+
 /* [04] 搜索结果弹层 */
 .search-results {
   position: fixed; top: calc(var(--header-height) + 4px); right: 1rem;
@@ -321,10 +359,46 @@ code.inline-code { background: var(--code-bg); color: var(--accent); padding: 2p
   h3.subsection-title { font-size: 1.05rem; }
 }
 
-/* [23] 打印 */
+/* [23] 打印 - 优化 PDF 导出效果 */
 @media print {
-  .top-header, .sidebar-toc, .back-to-top, .search-results, .theme-btn, .back-home-btn { display: none !important; }
-  .main-content, .home-content { margin-left: 0; padding: 0 2rem; max-width: 100%; }
-  body { font-size: 12pt; line-height: 1.6; color: #000; background: #fff; }
-  .section { page-break-inside: avoid; }
+  /* 隐藏所有交互元素 */
+  .top-header, .sidebar-toc, .back-to-top, .search-results, .search-overlay,
+  .theme-btn, .back-home-btn, .export-btn, .print-toast, .menu-toggle,
+  .search-wrapper { display: none !important; }
+
+  /* 内容占满页面宽度 */
+  .main-content, .home-content {
+    margin-left: 0 !important; padding: 0 !important; max-width: 100% !important;
+  }
+
+  /* 基础排版调整为适合 A4 纸 */
+  body {
+    font-size: 12pt; line-height: 1.6; color: #000; background: #fff;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  /* 章节标题另起一页 */
+  .section { page-break-inside: auto; }
+  h2.section-title { page-break-before: always; page-break-after: avoid; }
+  h2.section-title:first-of-type { page-break-before: avoid; }
+
+  /* 小标题不与后续内容分离 */
+  h3.subsection-title, h4.sub-subsection-title { page-break-after: avoid; }
+
+  /* 代码块、表格、提示框不被分页截断 */
+  .code-block, .table-wrap, .callout, .formula-block,
+  .timeline, .quote-block, .image-placeholder { page-break-inside: avoid; }
+
+  /* 卡片网格在打印时变为单列 */
+  .plan-grid, .nav-grid { grid-template-columns: 1fr !important; }
+  .plan-card { page-break-inside: avoid; margin-bottom: 0.5rem; }
+
+  /* 保留背景色和边框（让提示框、徽章在 PDF 中有颜色） */
+  .callout, .badge, .code-block .code-header, thead { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* 链接显示 URL（方便打印后查阅） */
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.8em; color: #666; }
+
+  /* 封面不另起页 */
+  .cover, .home-hero { page-break-after: avoid; }
 }
